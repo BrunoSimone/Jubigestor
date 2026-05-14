@@ -1,0 +1,21 @@
+[project]
+name = "jubigestor-backend"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Bruno Simone",email = "brunosimone.mdq@gmail.com"}
+]
+requires-python = "^3.14"
+dependencies = [
+    "fastapi (>=0.136.1,<0.137.0)",
+    "uvicorn[standard] (>=0.46.0,<0.47.0)",
+    "pydantic (>=2.13.4,<3.0.0)"
+]
+
+
+[tool.poetry]
+packages = [{include = "jubigestor"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
