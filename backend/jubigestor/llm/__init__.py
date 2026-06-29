@@ -20,6 +20,7 @@ def get_provider() -> LLMProvider:
                 api_key=settings.gemini_api_key,
                 model=settings.gemini_model,
                 embedding_model=settings.gemini_embedding_model,
+                embedding_dim=settings.gemini_embedding_dim,
             )
         if provider == "gemini":
             raise RuntimeError(

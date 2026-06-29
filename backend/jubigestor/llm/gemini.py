@@ -16,10 +16,13 @@ class GeminiProvider(LLMProvider):
 
     name = "gemini"
 
-    def __init__(self, api_key: str, model: str, embedding_model: str) -> None:
+    def __init__(
+        self, api_key: str, model: str, embedding_model: str, embedding_dim: int
+    ) -> None:
         self._client = genai.Client(api_key=api_key)
         self._model = model
         self._embedding_model = embedding_model
+        self._embedding_dim = embedding_dim
 
     async def generate(self, message: str, *, context: str | None = None) -> str:
         response = await self._client.aio.models.generate_content(
@@ -32,9 +35,15 @@ class GeminiProvider(LLMProvider):
         )
         return (response.text or "").strip()
 
-    async def embed(self, texts: Sequence[str]) -> list[list[float]]:
+    async def embed(
+        self, texts: Sequence[str], *, task_type: str = "RETRIEVAL_DOCUMENT"
+    ) -> list[list[float]]:
         response = await self._client.aio.models.embed_content(
             model=self._embedding_model,
             contents=list(texts),
+            config=types.EmbedContentConfig(
+                task_type=task_type,
+                output_dimensionality=self._embedding_dim,
+            ),
         )
         return [list(embedding.values) for embedding in response.embeddings]

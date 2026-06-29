@@ -18,6 +18,13 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-2.5-flash"
     gemini_embedding_model: str = "gemini-embedding-001"
+    # Dimensiones del embedding (MRL). 768 entra holgado en el indice de pgvector
+    # (limite 2000) y casi no pierde calidad. Definir ANTES de embedear el corpus:
+    # cambiarlo obliga a re-embedear todo y a recrear la columna vector(N).
+    gemini_embedding_dim: int = 768
+
+    # Conexion a Postgres. Local (Docker): postgresql://jubigestor:jubigestor@localhost:5432/jubigestor
+    database_url: str | None = None
 
 
 settings = Settings()

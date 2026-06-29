@@ -1,0 +1,20 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: jubigestor-db
+    environment:
+      POSTGRES_USER: jubigestor
+      POSTGRES_PASSWORD: jubigestor
+      POSTGRES_DB: jubigestor
+    ports:
+      - "5432:5432"
+    volumes:
+      - jubigestor_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jubigestor -d jubigestor"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  jubigestor_pgdata:

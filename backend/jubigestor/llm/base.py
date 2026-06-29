@@ -16,5 +16,11 @@ class LLMProvider(ABC):
         """Genera una respuesta para `message`, opcionalmente apoyada en `context` (RAG)."""
 
     @abstractmethod
-    async def embed(self, texts: Sequence[str]) -> list[list[float]]:
-        """Devuelve el embedding de cada texto. Se usa en el pipeline de ingesta y en retrieve."""
+    async def embed(
+        self, texts: Sequence[str], *, task_type: str = "RETRIEVAL_DOCUMENT"
+    ) -> list[list[float]]:
+        """Devuelve el embedding de cada texto.
+
+        `task_type` afina el embedding segun el uso: RETRIEVAL_DOCUMENT al indexar
+        (ingesta) y RETRIEVAL_QUERY al consultar. Usar el correcto mejora el retrieve.
+        """

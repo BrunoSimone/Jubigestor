@@ -41,7 +41,9 @@ class EchoProvider(LLMProvider):
                 return reply
         return _DEFAULT_REPLY
 
-    async def embed(self, texts: Sequence[str]) -> list[list[float]]:
+    async def embed(
+        self, texts: Sequence[str], *, task_type: str = "RETRIEVAL_DOCUMENT"
+    ) -> list[list[float]]:
         raise NotImplementedError(
             "EchoProvider no genera embeddings. Configurá un proveedor real "
             "(GEMINI_API_KEY) para usar el pipeline de ingesta / RAG."

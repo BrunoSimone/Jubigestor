@@ -1,5 +1,6 @@
 .DEFAULT_GOAL := help
-.PHONY: help install install-back install-front dev back front clean
+.PHONY: help install install-back install-front dev back front clean \
+        db-up db-down db-reset db-init db-smoke
 
 help: ## Muestra esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -31,3 +32,18 @@ front: ## Levanta solo el frontend (Next.js, :3000)
 
 clean: ## Borra venv y node_modules (para reinstalar de cero)
 	rm -rf backend/.venv frontend/node_modules
+
+db-up: ## Levanta Postgres + pgvector en Docker (:5432)
+	docker compose up -d
+
+db-down: ## Apaga la DB (conserva los datos)
+	docker compose down
+
+db-reset: ## Apaga la DB y BORRA todos los datos (volumen incluido)
+	docker compose down -v
+
+db-init: ## Aplica el esquema SQL a la DB
+	cd backend && .venv/bin/python scripts/init_db.py
+
+db-smoke: ## Prueba end-to-end: inserta chunks con embeddings y busca
+	cd backend && .venv/bin/python scripts/smoke_db.py
