@@ -1,0 +1,40 @@
+from collections.abc import Sequence
+
+from google import genai
+from google.genai import types
+
+from jubigestor.llm.base import LLMProvider
+from jubigestor.llm.prompts import SYSTEM_PROMPT, build_user_prompt
+
+
+class GeminiProvider(LLMProvider):
+    """Proveedor basado en Google Gemini (Google AI Studio, free tier).
+
+    Modelo por defecto: gemini-2.5-flash. El ID se inyecta desde config, así que
+    migrar (p. ej. a gemini-3.5-flash) es cambiar una env var.
+    """
+
+    name = "gemini"
+
+    def __init__(self, api_key: str, model: str, embedding_model: str) -> None:
+        self._client = genai.Client(api_key=api_key)
+        self._model = model
+        self._embedding_model = embedding_model
+
+    async def generate(self, message: str, *, context: str | None = None) -> str:
+        response = await self._client.aio.models.generate_content(
+            model=self._model,
+            contents=build_user_prompt(message, context),
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                temperature=0.2,
+            ),
+        )
+        return (response.text or "").strip()
+
+    async def embed(self, texts: Sequence[str]) -> list[list[float]]:
+        response = await self._client.aio.models.embed_content(
+            model=self._embedding_model,
+            contents=list(texts),
+        )
+        return [list(embedding.values) for embedding in response.embeddings]

@@ -1,26 +1,25 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
+from jubigestor.llm import get_provider
 from jubigestor.schemas.chat import ChatRequest, ChatResponse
 
 router = APIRouter()
 
-PLACEHOLDER_RESPONSES = {
-    "jubilacion": "Para iniciar tu jubilación ordinaria necesitás 30 años de aportes y haber cumplido la edad (60 mujeres, 65 varones). ¿Querés que te explique los requisitos en detalle?",
-    "pami": "PAMI es la obra social para jubilados y pensionados. Podés afiliarte apenas te jubilás. ¿Necesitás info sobre algún trámite específico de PAMI?",
-    "pension": "Las pensiones derivadas incluyen pensión por viudez, PUAM y pensiones no contributivas. ¿Sobre cuál querés saber más?",
-}
-
-DEFAULT_REPLY = (
-    "Soy Jubigestor, tu asistente para trámites jubilatorios argentinos. "
-    "Puedo ayudarte con jubilaciones, pensiones, PAMI, cobros y aumentos. "
-    "¿En qué te puedo ayudar?"
-)
-
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
-    message_lower = request.message.lower()
-    for keyword, response in PLACEHOLDER_RESPONSES.items():
-        if keyword in message_lower:
-            return ChatResponse(reply=response, sources=["placeholder"])
-    return ChatResponse(reply=DEFAULT_REPLY, sources=[])
+async def chat(request: ChatRequest) -> ChatResponse:
+    message = request.message.strip()
+    if not message:
+        raise HTTPException(status_code=422, detail="El mensaje no puede estar vacío.")
+
+    provider = get_provider()
+    try:
+        reply = await provider.generate(message)
+    except Exception as exc:  # noqa: BLE001 - el cliente no debe ver el detalle interno
+        raise HTTPException(
+            status_code=502,
+            detail="No pude generar una respuesta en este momento. Probá de nuevo.",
+        ) from exc
+
+    # TODO(rag): cuando esté pgvector, retrieve -> pasar context y poblar sources.
+    return ChatResponse(reply=reply, sources=[])
