@@ -11,7 +11,7 @@ interface Message {
   content: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export function Chat() {
   const [messages, setMessages] = useState<Message[]>([
@@ -23,13 +23,16 @@ export function Chat() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll al último mensaje. El elemento que scrollea es el Viewport
+  // interno del ScrollArea (no su Root), por eso usamos viewportRef.
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const viewport = viewportRef.current;
+    if (viewport) {
+      viewport.scrollTop = viewport.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -71,7 +74,7 @@ export function Chat() {
 
   return (
     <Card className="flex h-[500px] flex-col p-4">
-      <ScrollArea className="mb-4 flex-1 pr-4" ref={scrollRef}>
+      <ScrollArea className="mb-4 flex-1 pr-4" viewportRef={viewportRef}>
         <div className="space-y-4">
           {messages.map((msg, i) => (
             <div

@@ -24,3 +24,7 @@ CLAUDE.md
 # OS
 .DS_Store
 Thumbs.db
+
+# PDFs originales: viven localmente (PC / Drive), no en el repo.
+# El texto extraído (.md) y el source_url garantizan la trazabilidad.
+backend/data/sources/

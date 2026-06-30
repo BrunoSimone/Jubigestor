@@ -26,5 +26,10 @@ class Settings(BaseSettings):
     # Conexion a Postgres. Local (Docker): postgresql://jubigestor:jubigestor@localhost:5432/jubigestor
     database_url: str | None = None
 
+    # Pipeline de ingesta (chunking). Tamaño/overlap en caracteres.
+    chunk_size: int = 1200
+    chunk_overlap: int = 150
+    embed_batch_size: int = 50
+
 
 settings = Settings()
