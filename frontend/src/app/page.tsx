@@ -11,6 +11,10 @@ export default function Home() {
           Tu asistente para trámites jubilatorios argentinos
         </p>
         <Chat />
+        <p className="mt-4 text-center text-sm text-gray-500">
+          Información orientativa. No reemplaza el asesoramiento oficial de
+          ANSES.
+        </p>
       </div>
     </main>
   );

@@ -31,5 +31,14 @@ class Settings(BaseSettings):
     chunk_overlap: int = 150
     embed_batch_size: int = 50
 
+    # RAG (retrieve). Cuántos chunks traer y el umbral de distancia coseno para
+    # considerarlos relevantes: por encima se descartan y se responde sin contexto
+    # (el system prompt hace que el modelo derive a ANSES en vez de inventar).
+    rag_top_k: int = 4
+    # Calibrado 2026-07-01 sobre el corpus real: preguntas reales ~0.22-0.26,
+    # saludos/small-talk ~0.35-0.39, off-topic ~0.45+. 0.32 deja pasar solo las
+    # consultas reales (un saludo NO trae citas). Revisar si el corpus crece mucho.
+    rag_max_distance: float = 0.32
+
 
 settings = Settings()

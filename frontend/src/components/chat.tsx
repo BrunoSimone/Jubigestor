@@ -6,12 +6,30 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+interface Source {
+  title: string;
+  url: string;
+  published_at: string | null;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
+  sources?: Source[];
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+function formatDate(iso: string | null): string {
+  if (!iso) return "sin fecha";
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("es-AR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 export function Chat() {
   const [messages, setMessages] = useState<Message[]>([
@@ -26,12 +44,15 @@ export function Chat() {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll al último mensaje. El elemento que scrollea es el Viewport
-  // interno del ScrollArea (no su Root), por eso usamos viewportRef.
+  // interno del ScrollArea (no su Root), por eso usamos viewportRef. El rAF
+  // espera a que el layout (incluidas las fuentes) termine antes de medir.
   useEffect(() => {
     const viewport = viewportRef.current;
-    if (viewport) {
+    if (!viewport) return;
+    const id = requestAnimationFrame(() => {
       viewport.scrollTop = viewport.scrollHeight;
-    }
+    });
+    return () => cancelAnimationFrame(id);
   }, [messages, isLoading]);
 
   async function handleSubmit(e: FormEvent) {
@@ -56,7 +77,7 @@ export function Chat() {
       const data = await res.json();
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.reply },
+        { role: "assistant", content: data.reply, sources: data.sources },
       ]);
     } catch {
       setMessages((prev) => [
@@ -74,15 +95,17 @@ export function Chat() {
 
   return (
     <Card className="flex h-[500px] flex-col p-4">
-      <ScrollArea className="mb-4 flex-1 pr-4" viewportRef={viewportRef}>
+      <ScrollArea className="mb-4 min-h-0 flex-1 pr-4" viewportRef={viewportRef}>
         <div className="space-y-4">
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex flex-col ${
+                msg.role === "user" ? "items-end" : "items-start"
+              }`}
             >
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                className={`max-w-[80%] rounded-lg px-4 py-2 whitespace-pre-wrap ${
                   msg.role === "user"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-900"
@@ -92,6 +115,34 @@ export function Chat() {
               >
                 {msg.content}
               </div>
+
+              {msg.role === "assistant" &&
+                msg.sources &&
+                msg.sources.length > 0 && (
+                  <div className="mt-2 max-w-[80%] space-y-2 rounded-lg border border-gray-200 bg-white p-3 text-sm">
+                    <p className="font-medium text-gray-700">
+                      Fuentes oficiales
+                    </p>
+                    {msg.sources.map((s, j) => (
+                      <div key={j} className="text-gray-600">
+                        <span aria-hidden="true">📄 </span>
+                        {s.title}
+                        <div className="text-xs text-gray-500">
+                          Última actualización: {formatDate(s.published_at)}
+                          {" · "}
+                          <a
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-700 underline"
+                          >
+                            Ver en la página oficial
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
           ))}
           {isLoading && (
