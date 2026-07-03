@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 
 from jubigestor.llm.base import LLMProvider
 
@@ -40,6 +40,12 @@ class EchoProvider(LLMProvider):
             if keyword in lowered:
                 return reply
         return _DEFAULT_REPLY
+
+    async def generate_stream(
+        self, message: str, *, context: str | None = None
+    ) -> AsyncIterator[str]:
+        # Sin modelo real no hay tokens que streamear: emitimos la respuesta de una.
+        yield await self.generate(message, context=context)
 
     async def embed(
         self, texts: Sequence[str], *, task_type: str = "RETRIEVAL_DOCUMENT"

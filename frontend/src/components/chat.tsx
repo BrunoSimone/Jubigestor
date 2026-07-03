@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Markdown } from "@/components/markdown";
 
 interface Source {
   title: string;
@@ -72,13 +73,73 @@ export function Chat() {
         body: JSON.stringify({ message: trimmed }),
       });
 
-      if (!res.ok) throw new Error(`Error: ${res.status}`);
+      if (!res.ok || !res.body) throw new Error(`Error: ${res.status}`);
 
-      const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.reply, sources: data.sources },
-      ]);
+      // Stream NDJSON: 1 línea de fuentes + N líneas de texto + cierre.
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let pendingSources: Source[] = [];
+      let started = false;
+
+      const appendChunk = (chunk: string) =>
+        setMessages((prev) =>
+          prev.map((m, i) =>
+            i === prev.length - 1 ? { ...m, content: m.content + chunk } : m
+          )
+        );
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? ""; // la última línea puede venir incompleta
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const evt = JSON.parse(line);
+
+          if (evt.type === "sources") {
+            pendingSources = evt.sources ?? [];
+          } else if (evt.type === "text") {
+            if (!started) {
+              started = true;
+              setMessages((prev) => [
+                ...prev,
+                {
+                  role: "assistant",
+                  content: evt.chunk,
+                  sources: pendingSources,
+                },
+              ]);
+            } else {
+              appendChunk(evt.chunk);
+            }
+          } else if (evt.type === "error") {
+            if (!started) {
+              started = true;
+              setMessages((prev) => [
+                ...prev,
+                { role: "assistant", content: evt.message },
+              ]);
+            } else {
+              appendChunk(`\n\n${evt.message}`);
+            }
+          }
+        }
+      }
+
+      if (!started) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "No pude generar una respuesta. Probá de nuevo.",
+          },
+        ]);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -105,15 +166,19 @@ export function Chat() {
               }`}
             >
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 whitespace-pre-wrap ${
+                className={`max-w-[80%] rounded-lg px-4 py-2 ${
                   msg.role === "user"
-                    ? "bg-blue-600 text-white"
+                    ? "whitespace-pre-wrap bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-900"
                 }`}
                 role="log"
                 aria-live={msg.role === "assistant" ? "polite" : undefined}
               >
-                {msg.content}
+                {msg.role === "assistant" ? (
+                  <Markdown content={msg.content} />
+                ) : (
+                  msg.content
+                )}
               </div>
 
               {msg.role === "assistant" &&
@@ -145,7 +210,7 @@ export function Chat() {
                 )}
             </div>
           ))}
-          {isLoading && (
+          {isLoading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex justify-start">
               <div className="rounded-lg bg-gray-100 px-4 py-2 text-gray-500">
                 Pensando...

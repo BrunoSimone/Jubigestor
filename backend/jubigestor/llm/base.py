@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 
 
 class LLMProvider(ABC):
@@ -14,6 +14,15 @@ class LLMProvider(ABC):
     @abstractmethod
     async def generate(self, message: str, *, context: str | None = None) -> str:
         """Genera una respuesta para `message`, opcionalmente apoyada en `context` (RAG)."""
+
+    @abstractmethod
+    def generate_stream(
+        self, message: str, *, context: str | None = None
+    ) -> AsyncIterator[str]:
+        """Igual que `generate`, pero emite la respuesta en chunks (streaming).
+
+        Implementar como async generator: `async def ...: yield <chunk>`.
+        """
 
     @abstractmethod
     async def embed(

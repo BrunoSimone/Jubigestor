@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 
 from google import genai
 from google.genai import types
@@ -34,6 +34,21 @@ class GeminiProvider(LLMProvider):
             ),
         )
         return (response.text or "").strip()
+
+    async def generate_stream(
+        self, message: str, *, context: str | None = None
+    ) -> AsyncIterator[str]:
+        stream = await self._client.aio.models.generate_content_stream(
+            model=self._model,
+            contents=build_user_prompt(message, context),
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                temperature=0.2,
+            ),
+        )
+        async for chunk in stream:
+            if chunk.text:
+                yield chunk.text
 
     async def embed(
         self, texts: Sequence[str], *, task_type: str = "RETRIEVAL_DOCUMENT"
