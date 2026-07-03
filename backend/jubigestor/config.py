@@ -40,5 +40,9 @@ class Settings(BaseSettings):
     # consultas reales (un saludo NO trae citas). Revisar si el corpus crece mucho.
     rag_max_distance: float = 0.32
 
+    # Rate limiting del chat: máximo de consultas por IP en una ventana de tiempo.
+    rate_limit_requests: int = 20
+    rate_limit_window_seconds: int = 60
+
 
 settings = Settings()

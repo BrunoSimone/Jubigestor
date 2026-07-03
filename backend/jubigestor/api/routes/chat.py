@@ -2,11 +2,12 @@ import json
 import logging
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from jubigestor.llm import get_provider
 from jubigestor.rag import retrieve
+from jubigestor.ratelimit import rate_limit
 from jubigestor.schemas.chat import ChatRequest
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/chat")
+@router.post("/chat", dependencies=[Depends(rate_limit)])
 async def chat(request: ChatRequest) -> StreamingResponse:
     """Responde en streaming NDJSON: 1 línea de fuentes + N líneas de texto + cierre.
 
