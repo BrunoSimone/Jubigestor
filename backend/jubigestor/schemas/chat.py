@@ -8,13 +8,8 @@ class ChatRequest(BaseModel):
 
 
 class Source(BaseModel):
-    """Cita de un documento oficial usado para responder."""
+    """Citation of an official document used to answer."""
 
     title: str
     url: str
     published_at: date | None = None
-
-
-class ChatResponse(BaseModel):
-    reply: str
-    sources: list[Source] = []

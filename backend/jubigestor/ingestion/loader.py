@@ -1,13 +1,13 @@
-"""Carga documentos del corpus (archivos .md con frontmatter) a objetos en memoria.
+"""Load corpus documents (.md files with frontmatter) into in-memory objects.
 
-Cada documento vive en data/corpus/*.md con este formato:
+Each document lives in data/corpus/*.md with this format:
 
     ---
     title: Moratoria previsional
     source_url: https://www.anses.gob.ar/...
     published_at: 2026-01-15
     ---
-    <texto del documento>
+    <document text>
 """
 
 from dataclasses import dataclass
@@ -25,11 +25,11 @@ class SourceDocument:
 
 def _parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
     if not text.lstrip().startswith("---"):
-        raise ValueError("Falta el frontmatter (--- ... ---) al inicio del archivo.")
+        raise ValueError("Missing frontmatter (--- ... ---) at the start of the file.")
     # parts: ['', '<frontmatter>', '<body>']
     parts = text.split("---", 2)
     if len(parts) < 3:
-        raise ValueError("Frontmatter mal cerrado: faltan los '---' de cierre.")
+        raise ValueError("Malformed frontmatter: missing the closing '---'.")
 
     meta: dict[str, str] = {}
     for line in parts[1].strip().splitlines():
@@ -44,12 +44,12 @@ def _parse_date(value: str | None) -> date | None:
 
 
 def load_corpus(corpus_dir: Path) -> list[SourceDocument]:
-    """Lee todos los .md del corpus y los devuelve como SourceDocument."""
+    """Read every .md in the corpus and return them as SourceDocument."""
     documents: list[SourceDocument] = []
     for path in sorted(corpus_dir.glob("*.md")):
         meta, body = _parse_frontmatter(path.read_text(encoding="utf-8"))
         if "title" not in meta or "source_url" not in meta:
-            raise ValueError(f"{path.name}: faltan 'title' o 'source_url' en el frontmatter.")
+            raise ValueError(f"{path.name}: missing 'title' or 'source_url' in frontmatter.")
         documents.append(
             SourceDocument(
                 title=meta["title"],

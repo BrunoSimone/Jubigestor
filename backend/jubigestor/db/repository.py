@@ -1,4 +1,4 @@
-"""Acceso a datos: documentos y chunks. SQL crudo sobre psycopg (async)."""
+"""Data access: documents and chunks. Raw SQL over psycopg (async)."""
 
 from collections.abc import Sequence
 from datetime import date
@@ -13,10 +13,10 @@ ChunkInput = tuple[int, str, Sequence[float]]
 
 
 def _vector(embedding: Sequence[float]) -> str:
-    """Formatea el embedding como literal de pgvector: '[0.1,0.2,...]'.
+    """Format the embedding as a pgvector literal: '[0.1,0.2,...]'.
 
-    Se combina con un cast `%s::vector` en el SQL. Asi el operador `<=>` recibe
-    un `vector` y no un `double precision[]` (que no tiene operador de distancia).
+    Paired with a `%s::vector` cast in the SQL, so the `<=>` operator gets a
+    `vector` and not a `double precision[]` (which has no distance operator).
     """
     return "[" + ",".join(map(str, embedding)) + "]"
 
@@ -24,7 +24,7 @@ def _vector(embedding: Sequence[float]) -> str:
 async def upsert_document(
     *, title: str, source_url: str, published_at: date | None = None
 ) -> UUID:
-    """Crea o actualiza un documento (idempotente por source_url). Devuelve su id."""
+    """Create or update a document (idempotent by source_url). Returns its id."""
     pool = get_pool()
     async with pool.connection() as conn, conn.cursor() as cur:
         await cur.execute(
@@ -44,7 +44,7 @@ async def upsert_document(
 
 
 async def replace_chunks(document_id: UUID, chunks: Sequence[ChunkInput]) -> int:
-    """Reemplaza TODOS los chunks de un documento (borra + inserta, en una transaccion)."""
+    """Replace ALL chunks of a document (delete + insert, in one transaction)."""
     pool = get_pool()
     async with pool.connection() as conn, conn.cursor() as cur:
         await cur.execute("DELETE FROM chunks WHERE document_id = %s", (document_id,))
@@ -61,7 +61,7 @@ async def replace_chunks(document_id: UUID, chunks: Sequence[ChunkInput]) -> int
 async def search_similar_chunks(
     embedding: Sequence[float], *, limit: int = 5
 ) -> list[dict]:
-    """Devuelve los `limit` chunks mas parecidos al embedding, con su cita (JOIN a documents)."""
+    """Return the `limit` chunks closest to the embedding, with their citation (JOIN documents)."""
     pool = get_pool()
     async with pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
         await cur.execute(

@@ -1,15 +1,15 @@
-"""Trocea texto en chunks usando el splitter recursivo (respeta la estructura).
+"""Split text into chunks with the recursive splitter (structure-aware).
 
-Intenta cortar primero por párrafos, luego oraciones, luego palabras: los cortes
-caen en lugares naturales y no parten frases por la mitad.
+It tries to split on paragraphs first, then sentences, then words: cuts land in
+natural places instead of breaking sentences in half.
 """
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from jubigestor.config import settings
 
-# Orden de preferencia de corte. Para normativa argentina se pueden afinar
-# separadores propios (p. ej. "\nArtículo", "\nInciso") si el retrieve sale flojo.
+# Preferred split order. For Argentine regulations we can tune custom separators
+# (e.g. "\nArtículo", "\nInciso") if retrieval quality is weak.
 _SEPARATORS = ["\n\n", "\n", ". ", " ", ""]
 
 

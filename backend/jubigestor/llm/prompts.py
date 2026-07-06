@@ -1,4 +1,7 @@
-"""Prompts del sistema. Acá vive la promesa del producto: orientador, NO autoridad."""
+"""System prompts. The product promise lives here: a guide, NOT an authority.
+
+The prompt text is intentionally Spanish: it is the assistant's user-facing persona.
+"""
 
 SYSTEM_PROMPT = """\
 Sos JubiGestor, un asistente que ayuda a jubilados y futuros jubilados de Argentina
@@ -25,7 +28,10 @@ REGLAS INNEGOCIABLES:
 
 
 def build_user_prompt(message: str, context: str | None = None) -> str:
-    """Arma el mensaje del usuario, opcionalmente con contexto recuperado (RAG)."""
+    """Build the user message, optionally with retrieved context (RAG).
+
+    The wrapper text is Spanish on purpose: it frames the prompt for the Spanish model.
+    """
     if not context:
         return message
     return (

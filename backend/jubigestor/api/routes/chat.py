@@ -17,19 +17,19 @@ router = APIRouter()
 
 @router.post("/chat", dependencies=[Depends(rate_limit)])
 async def chat(request: ChatRequest) -> StreamingResponse:
-    """Responde en streaming NDJSON: 1 línea de fuentes + N líneas de texto + cierre.
+    """Stream an NDJSON reply: 1 sources line + N text lines + a closing line.
 
-    Formato (una línea JSON por evento):
+    Format (one JSON object per line):
         {"type": "sources", "sources": [...]}
         {"type": "text", "chunk": "..."}
-        {"type": "done"}          (o {"type": "error", "message": "..."})
+        {"type": "done"}          (or {"type": "error", "message": "..."})
     """
     message = request.message.strip()
     if not message:
         raise HTTPException(status_code=422, detail="El mensaje no puede estar vacío.")
 
     provider = get_provider()
-    # El retrieve va ANTES del stream: así ya tenemos las citas para emitirlas primero.
+    # Retrieve runs BEFORE the stream, so we already have the citations to emit first.
     context, sources = await retrieve(provider, message)
 
     async def event_stream() -> AsyncIterator[str]:
@@ -40,7 +40,7 @@ async def chat(request: ChatRequest) -> StreamingResponse:
             async for chunk in provider.generate_stream(message, context=context):
                 yield json.dumps({"type": "text", "chunk": chunk}) + "\n"
         except Exception:
-            logger.exception("Falló la generación en streaming.")
+            logger.exception("Streaming generation failed.")
             yield json.dumps(
                 {"type": "error", "message": "No pude generar una respuesta. Probá de nuevo."}
             ) + "\n"

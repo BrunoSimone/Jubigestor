@@ -1,4 +1,4 @@
-"""Orquesta la ingesta: documento -> upsert -> chunk -> embed -> guardar chunks."""
+"""Orchestrates ingestion: document -> upsert -> chunk -> embed -> store chunks."""
 
 import logging
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 async def _embed_in_batches(provider: LLMProvider, chunks: list[str]) -> list[list[float]]:
-    """Embebe en lotes para no pasarnos del límite de la API en documentos grandes."""
+    """Embed in batches to stay under the API limit on large documents."""
     embeddings: list[list[float]] = []
     batch_size = settings.embed_batch_size
     for start in range(0, len(chunks), batch_size):
@@ -22,7 +22,7 @@ async def _embed_in_batches(provider: LLMProvider, chunks: list[str]) -> list[li
 
 
 async def ingest_document(provider: LLMProvider, doc: SourceDocument) -> int:
-    """Procesa un documento completo y devuelve cuántos chunks quedaron guardados."""
+    """Process a full document and return how many chunks were stored."""
     document_id = await repo.upsert_document(
         title=doc.title,
         source_url=doc.source_url,
@@ -31,7 +31,7 @@ async def ingest_document(provider: LLMProvider, doc: SourceDocument) -> int:
 
     chunks = chunk_text(doc.content)
     if not chunks:
-        logger.warning("Documento sin contenido aprovechable: %s", doc.title)
+        logger.warning("Document with no usable content: %s", doc.title)
         return 0
 
     embeddings = await _embed_in_batches(provider, chunks)

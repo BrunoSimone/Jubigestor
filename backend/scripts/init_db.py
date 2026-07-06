@@ -1,4 +1,4 @@
-"""Aplica el esquema SQL a la base. Idempotente. Uso: make db-init"""
+"""Apply the SQL schema to the database. Idempotent. Usage: make db-init"""
 
 import asyncio
 from pathlib import Path
@@ -12,7 +12,7 @@ SCHEMA = Path(__file__).resolve().parent.parent / "jubigestor" / "db" / "schema.
 
 async def main() -> None:
     if not settings.database_url:
-        raise SystemExit("DATABASE_URL no configurada. Levantá la DB (make db-up).")
+        raise SystemExit("DATABASE_URL is not set. Start the DB (make db-up).")
 
     statements = [s.strip() for s in SCHEMA.read_text().split(";") if s.strip()]
     async with await psycopg.AsyncConnection.connect(
@@ -21,7 +21,7 @@ async def main() -> None:
         for stmt in statements:
             await conn.execute(stmt)
 
-    print(f"✅ Esquema aplicado ({len(statements)} sentencias).")
+    print(f"OK  schema applied ({len(statements)} statements).")
 
 
 if __name__ == "__main__":

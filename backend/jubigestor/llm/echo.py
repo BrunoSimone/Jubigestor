@@ -27,9 +27,10 @@ _DEFAULT_REPLY = (
 
 
 class EchoProvider(LLMProvider):
-    """Fallback sin costo ni red: mantiene la app funcionando cuando no hay API key.
+    """Zero-cost, network-free fallback: keeps the app working with no API key.
 
-    Replica las respuestas placeholder por palabra clave para que la demo no quede rota.
+    Mirrors the keyword placeholder replies so the demo never breaks.
+    (Reply strings stay in Spanish: they are shown to the end user.)
     """
 
     name = "echo"
@@ -44,13 +45,13 @@ class EchoProvider(LLMProvider):
     async def generate_stream(
         self, message: str, *, context: str | None = None
     ) -> AsyncIterator[str]:
-        # Sin modelo real no hay tokens que streamear: emitimos la respuesta de una.
+        # No real model means no tokens to stream: emit the reply in one shot.
         yield await self.generate(message, context=context)
 
     async def embed(
         self, texts: Sequence[str], *, task_type: str = "RETRIEVAL_DOCUMENT"
     ) -> list[list[float]]:
         raise NotImplementedError(
-            "EchoProvider no genera embeddings. Configurá un proveedor real "
-            "(GEMINI_API_KEY) para usar el pipeline de ingesta / RAG."
+            "EchoProvider does not generate embeddings. Configure a real provider "
+            "(GEMINI_API_KEY) to use the ingestion pipeline / RAG."
         )

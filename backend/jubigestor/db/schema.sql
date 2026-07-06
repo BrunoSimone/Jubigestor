@@ -1,9 +1,9 @@
--- Esquema de JubiGestor (Postgres + pgvector).
--- Idempotente: se puede correr varias veces sin romper nada.
+-- JubiGestor schema (Postgres + pgvector).
+-- Idempotent: safe to run multiple times.
 
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Ficha bibliográfica de cada documento oficial (de acá salen las CITAS).
+-- Bibliographic record of each official document (source of the CITATIONS).
 CREATE TABLE IF NOT EXISTS documents (
     id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     title        text NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at   timestamptz NOT NULL DEFAULT now()
 );
 
--- Trozos de texto + su vector. El texto y el embedding viven JUNTOS.
+-- Text chunks + their vector. Text and embedding live TOGETHER.
 CREATE TABLE IF NOT EXISTS chunks (
     id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     document_id  uuid NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
@@ -24,6 +24,6 @@ CREATE TABLE IF NOT EXISTS chunks (
     UNIQUE (document_id, chunk_index)
 );
 
--- Indice HNSW para busqueda por similitud (distancia coseno).
+-- HNSW index for similarity search (cosine distance).
 CREATE INDEX IF NOT EXISTS chunks_embedding_hnsw
     ON chunks USING hnsw (embedding vector_cosine_ops);

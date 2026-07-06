@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Atkinson_Hyperlegible } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Atkinson Hyperlegible: a typeface designed for low vision. Key for our audience.
+const atkinson = Atkinson_Hyperlegible({
+  weight: ["400", "700"],
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-atkinson",
 });
 
 export const metadata: Metadata = {
@@ -24,11 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="es" className={`${atkinson.variable} h-full antialiased`}>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

@@ -10,29 +10,29 @@ router = APIRouter()
 
 @router.get("/health")
 async def health_check():
-    """Health check liviano en JSON (para monitoreo / keep-warm ping)."""
+    """Lightweight JSON health check (for monitoring / keep-warm ping)."""
     return {"status": "ok", "service": "jubigestor"}
 
 
 async def _db_status() -> str:
-    """Estado de la conexión a Postgres, sin romper si la DB no está."""
+    """Postgres connection status, without failing if the DB is down."""
     if not settings.database_url:
-        return "no configurada"
+        return "not configured"
     try:
         async with get_pool().connection() as conn:
             await conn.execute("SELECT 1")
-        return "conectada"
+        return "connected"
     except Exception:
-        return "error de conexión"
+        return "connection error"
 
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def root():
-    """Página de estado legible en el navegador: confirma que el backend anda."""
+    """Browser-readable status page (dev-facing): confirms the backend is up."""
     provider = get_provider().name
     db = await _db_status()
     html = f"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -53,15 +53,15 @@ async def root():
 </head>
 <body>
   <div class="card">
-    <h1>✅ JubiGestor — Backend <span class="ok">funcionando</span></h1>
+    <h1>✅ JubiGestor — Backend <span class="ok">running</span></h1>
     <table>
-      <tr><td>Proveedor LLM</td><td>{provider}</td></tr>
-      <tr><td>Base de datos</td><td>{db}</td></tr>
+      <tr><td>LLM provider</td><td>{provider}</td></tr>
+      <tr><td>Database</td><td>{db}</td></tr>
     </table>
     <p class="muted">
       Endpoints: <a href="/health">/health</a> (JSON) ·
-      <a href="/docs">/docs</a> (API interactiva)<br>
-      La app (chat) está en <a href="http://localhost:3000">http://localhost:3000</a>
+      <a href="/docs">/docs</a> (interactive API)<br>
+      The app (chat) is at <a href="http://localhost:3000">http://localhost:3000</a>
     </p>
   </div>
 </body>

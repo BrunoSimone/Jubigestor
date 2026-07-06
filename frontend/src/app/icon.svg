@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="JubiGestor">
+  <circle cx="50" cy="50" r="50" fill="oklch(0.45 0.11 255)"/>
+  <!-- Carita escalada para que se lea mejor en tamaño favicon -->
+  <g transform="translate(50 51) scale(1.22) translate(-50 -51)">
+    <path d="M18 50 A32 32 0 0 1 82 50 L82 52 A32 20 0 0 0 18 52 Z" fill="oklch(0.82 0.008 250)"/>
+    <circle cx="50" cy="53" r="31" fill="oklch(0.9 0.04 65)"/>
+    <circle cx="33" cy="60" r="6.5" fill="oklch(0.78 0.07 30)" opacity="0.55"/>
+    <circle cx="67" cy="60" r="6.5" fill="oklch(0.78 0.07 30)" opacity="0.55"/>
+    <path d="M31 40 Q39 36 47 40" fill="none" stroke="oklch(0.5 0.02 250)" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M53 40 Q61 36 69 40" fill="none" stroke="oklch(0.5 0.02 250)" stroke-width="2.4" stroke-linecap="round"/>
+    <g fill="oklch(1 0 0 / 0.35)" stroke="oklch(0.3 0.06 255)" stroke-width="3.2">
+      <circle cx="39" cy="49" r="9.5"/>
+      <circle cx="61" cy="49" r="9.5"/>
+    </g>
+    <path d="M48.5 47 Q50 44.5 51.5 47" fill="none" stroke="oklch(0.3 0.06 255)" stroke-width="3.2" stroke-linecap="round"/>
+    <line x1="29.5" y1="47" x2="22" y2="44" stroke="oklch(0.3 0.06 255)" stroke-width="3.2" stroke-linecap="round"/>
+    <line x1="70.5" y1="47" x2="78" y2="44" stroke="oklch(0.3 0.06 255)" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="39" cy="49.5" r="3.1" fill="oklch(0.28 0.02 250)"/>
+    <circle cx="61" cy="49.5" r="3.1" fill="oklch(0.28 0.02 250)"/>
+    <path d="M40 66 Q50 74 60 66" fill="none" stroke="oklch(0.4 0.05 30)" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

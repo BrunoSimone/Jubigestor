@@ -8,7 +8,7 @@ from jubigestor.llm.gemini import GeminiProvider
 
 @lru_cache
 def get_provider() -> LLMProvider:
-    """Devuelve el proveedor de LLM activo según la config (singleton)."""
+    """Return the active LLM provider based on config (singleton)."""
     provider = settings.llm_provider.lower()
 
     if provider == "echo":
@@ -24,11 +24,11 @@ def get_provider() -> LLMProvider:
             )
         if provider == "gemini":
             raise RuntimeError(
-                "LLM_PROVIDER=gemini pero falta GEMINI_API_KEY. "
-                "Configurala o usá LLM_PROVIDER=auto/echo."
+                "LLM_PROVIDER=gemini but GEMINI_API_KEY is missing. "
+                "Set it, or use LLM_PROVIDER=auto/echo."
             )
 
-    # auto sin API key -> fallback que mantiene la app viva.
+    # auto without an API key -> fallback that keeps the app alive.
     return EchoProvider()
 
 

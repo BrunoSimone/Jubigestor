@@ -1,7 +1,7 @@
-"""Rate limiting simple en memoria, por IP (ventana deslizante).
+"""Simple in-memory, per-IP rate limiting (sliding window).
 
-Para un despliegue de una sola instancia (Render free) alcanza y no agrega
-dependencias. Si algún día escalás a varias instancias, migrar a Redis.
+Good enough for a single-instance deployment (Render free) with no extra
+dependencies. Migrate to Redis if this ever scales to multiple instances.
 """
 
 import time
@@ -11,12 +11,12 @@ from fastapi import HTTPException, Request
 
 from jubigestor.config import settings
 
-# IP -> timestamps (monotónicos) de las consultas dentro de la ventana.
+# IP -> monotonic timestamps of the requests inside the window.
 _hits: dict[str, deque[float]] = defaultdict(deque)
 
 
 def _client_ip(request: Request) -> str:
-    # Detrás de un proxy (Render), la IP real viene en X-Forwarded-For.
+    # Behind a proxy (Render), the real IP comes in X-Forwarded-For.
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
         return forwarded.split(",")[0].strip()
@@ -24,13 +24,13 @@ def _client_ip(request: Request) -> str:
 
 
 async def rate_limit(request: Request) -> None:
-    """Dependencia de FastAPI: corta con 429 si la IP superó el límite."""
+    """FastAPI dependency: raises 429 when the IP exceeds the limit."""
     now = time.monotonic()
     window = settings.rate_limit_window_seconds
     limit = settings.rate_limit_requests
 
     bucket = _hits[_client_ip(request)]
-    # Descarta los hits fuera de la ventana.
+    # Drop hits that fell outside the window.
     while bucket and bucket[0] <= now - window:
         bucket.popleft()
 
@@ -38,6 +38,7 @@ async def rate_limit(request: Request) -> None:
         retry_after = int(window - (now - bucket[0])) + 1
         raise HTTPException(
             status_code=429,
+            # User-facing message (shown in the chat).
             detail="Demasiadas consultas seguidas. Esperá unos segundos e intentá de nuevo.",
             headers={"Retry-After": str(retry_after)},
         )

@@ -3,33 +3,34 @@ from collections.abc import AsyncIterator, Sequence
 
 
 class LLMProvider(ABC):
-    """Contrato común para cualquier proveedor de LLM.
+    """Common contract for any LLM provider.
 
-    Mantener esta abstracción permite cambiar Gemini <-> OpenAI <-> Claude
-    cambiando una sola variable de entorno, sin tocar las rutas ni el RAG.
+    Keeping this abstraction lets us switch Gemini <-> OpenAI <-> Claude by
+    changing a single environment variable, without touching the routes or RAG.
     """
 
     name: str
 
     @abstractmethod
     async def generate(self, message: str, *, context: str | None = None) -> str:
-        """Genera una respuesta para `message`, opcionalmente apoyada en `context` (RAG)."""
+        """Generate a reply for `message`, optionally grounded in `context` (RAG)."""
 
     @abstractmethod
     def generate_stream(
         self, message: str, *, context: str | None = None
     ) -> AsyncIterator[str]:
-        """Igual que `generate`, pero emite la respuesta en chunks (streaming).
+        """Like `generate`, but emits the reply in chunks (streaming).
 
-        Implementar como async generator: `async def ...: yield <chunk>`.
+        Implement as an async generator: `async def ...: yield <chunk>`.
         """
 
     @abstractmethod
     async def embed(
         self, texts: Sequence[str], *, task_type: str = "RETRIEVAL_DOCUMENT"
     ) -> list[list[float]]:
-        """Devuelve el embedding de cada texto.
+        """Return the embedding of each text.
 
-        `task_type` afina el embedding segun el uso: RETRIEVAL_DOCUMENT al indexar
-        (ingesta) y RETRIEVAL_QUERY al consultar. Usar el correcto mejora el retrieve.
+        `task_type` tunes the embedding for its use: RETRIEVAL_DOCUMENT when
+        indexing (ingestion) and RETRIEVAL_QUERY when querying. Using the right
+        one improves retrieval quality.
         """

@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Jubigestor API",
     version="0.1.0",
-    description="Asistente para trámites jubilatorios argentinos",
+    description="Assistant for Argentine pension procedures",
     lifespan=lifespan,
 )
 

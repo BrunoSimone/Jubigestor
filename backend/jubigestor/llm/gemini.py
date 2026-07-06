@@ -14,12 +14,12 @@ from tenacity import (
 from jubigestor.llm.base import LLMProvider
 from jubigestor.llm.prompts import SYSTEM_PROMPT, build_user_prompt
 
-# Códigos HTTP transitorios: vale la pena reintentar (rate limit, saturación pasajera).
+# Transient HTTP codes: worth retrying (rate limit, momentary saturation).
 _TRANSIENT_CODES = {429, 500, 502, 503, 504}
 
 
 def _is_transient(exc: BaseException) -> bool:
-    """True si el fallo del LLM es transitorio (reintentable), no definitivo."""
+    """True if the LLM failure is transient (retryable), not permanent."""
     if isinstance(exc, (httpx.TimeoutException, httpx.TransportError)):
         return True
     if isinstance(exc, genai_errors.APIError):
@@ -27,8 +27,8 @@ def _is_transient(exc: BaseException) -> bool:
     return False
 
 
-# Reintenta hasta 3 veces con backoff exponencial + jitter ante errores transitorios.
-# NO reintenta errores definitivos (400/401/422): esos no se arreglan reintentando.
+# Retry up to 3 times with exponential backoff + jitter on transient errors.
+# Does NOT retry permanent errors (400/401/422): retrying won't fix those.
 _retry_transient = retry(
     retry=retry_if_exception(_is_transient),
     stop=stop_after_attempt(3),
@@ -38,10 +38,10 @@ _retry_transient = retry(
 
 
 class GeminiProvider(LLMProvider):
-    """Proveedor basado en Google Gemini (Google AI Studio, free tier).
+    """Google Gemini provider (Google AI Studio, free tier).
 
-    Modelo por defecto: gemini-2.5-flash. El ID se inyecta desde config, así que
-    migrar (p. ej. a gemini-3.5-flash) es cambiar una env var.
+    Default model: gemini-2.5-flash. The ID is injected from config, so migrating
+    (e.g. to gemini-3.5-flash) is just an env var change.
     """
 
     name = "gemini"
@@ -68,8 +68,8 @@ class GeminiProvider(LLMProvider):
 
     @_retry_transient
     async def _open_stream(self, message: str, context: str | None):
-        """Abre el stream con Gemini. El retry va acá (antes del primer token),
-        no sobre la iteración: reintentar a mitad de stream duplicaría texto."""
+        """Open the Gemini stream. Retry lives here (before the first token),
+        not over the iteration: retrying mid-stream would duplicate text."""
         return await self._client.aio.models.generate_content_stream(
             model=self._model,
             contents=build_user_prompt(message, context),

@@ -1,8 +1,8 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-// Renderiza Markdown con espaciado compacto pensado para las burbujas del chat.
-// react-markdown NO interpreta HTML crudo por defecto, así que es seguro frente a XSS.
+// Renders Markdown with compact spacing tuned for the chat bubbles.
+// react-markdown does NOT parse raw HTML by default, so it is XSS-safe.
 export function Markdown({ content }: { content: string }) {
   return (
     <ReactMarkdown

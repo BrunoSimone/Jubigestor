@@ -1,7 +1,7 @@
-"""Prueba el retrieve: embebe una pregunta y muestra los chunks más parecidos.
+"""Test the retrieve step: embed a question and show the closest chunks.
 
-Sirve para validar la búsqueda semántica antes de conectarla al /api/chat.
-Uso: make query Q="¿cómo me jubilo si no tengo aportes?"
+Useful to validate semantic search before wiring it into /api/chat.
+Usage: make query Q="¿cómo me jubilo si no tengo aportes?"
 """
 
 import asyncio
@@ -11,6 +11,7 @@ from jubigestor.db import close_pool, open_pool
 from jubigestor.db import repository as repo
 from jubigestor.llm import get_provider
 
+# Example query in Spanish (representative of real user input).
 DEFAULT_QUERY = "¿cómo me jubilo si no tengo 30 años de aportes?"
 
 
@@ -19,23 +20,23 @@ async def main() -> None:
 
     provider = get_provider()
     if provider.name != "gemini":
-        raise SystemExit("Sin GEMINI_API_KEY no se puede embeber la consulta.")
+        raise SystemExit("Embedding the query needs GEMINI_API_KEY.")
 
     await open_pool()
     (embedding,) = await provider.embed([query], task_type="RETRIEVAL_QUERY")
     results = await repo.search_similar_chunks(embedding, limit=3)
     await close_pool()
 
-    print(f'\nConsulta: "{query}"\n')
+    print(f'\nQuery: "{query}"\n')
     if not results:
-        print("(sin resultados — ¿corriste 'make ingest'?)")
+        print("(no results — did you run 'make ingest'?)")
         return
-    print("Chunks más relevantes (menor distancia = más parecido):\n")
+    print("Most relevant chunks (lower distance = closer):\n")
     for i, r in enumerate(results, 1):
-        fecha = r["published_at"] or "sin fecha"
+        updated = r["published_at"] or "no date"
         print(f"{i}. [dist {r['distance']:.4f}]  {r['content'][:90]}…")
-        print(f"   📄 {r['title']}")
-        print(f"   🔗 {r['source_url']}  ·  última actualización: {fecha}\n")
+        print(f"   doc: {r['title']}")
+        print(f"   url: {r['source_url']}  ·  last updated: {updated}\n")
 
 
 if __name__ == "__main__":

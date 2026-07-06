@@ -11,24 +11,22 @@ _pool: AsyncConnectionPool | None = None
 
 
 async def _configure(conn) -> None:
-    """Se corre por cada conexion del pool: habilita el tipo `vector` en psycopg."""
+    """Runs for every pooled connection: enables the `vector` type in psycopg."""
     try:
         await register_vector_async(conn)
     except Exception:
-        # La extension `vector` puede no existir todavia (antes de `make db-init`).
-        logger.warning(
-            "No pude registrar el tipo 'vector'. ¿Corriste 'make db-init'?"
-        )
+        # The `vector` extension may not exist yet (before `make db-init`).
+        logger.warning("Could not register the 'vector' type. Did you run 'make db-init'?")
 
 
 def get_pool() -> AsyncConnectionPool:
-    """Devuelve el pool de conexiones (lo crea perezosamente)."""
+    """Return the connection pool (created lazily)."""
     global _pool
     if _pool is None:
         if not settings.database_url:
             raise RuntimeError(
-                "DATABASE_URL no configurada. Levantá la DB (make db-up) "
-                "y poné DATABASE_URL en el .env."
+                "DATABASE_URL is not set. Start the DB (make db-up) "
+                "and set DATABASE_URL in .env."
             )
         _pool = AsyncConnectionPool(
             settings.database_url,
@@ -41,9 +39,9 @@ def get_pool() -> AsyncConnectionPool:
 
 
 async def open_pool() -> None:
-    """Abre el pool si hay DB configurada. Si no, no hace nada (la app sigue viva)."""
+    """Open the pool if a DB is configured. Otherwise no-op (the app stays alive)."""
     if not settings.database_url:
-        logger.warning("Sin DATABASE_URL: el chat funciona, pero sin RAG.")
+        logger.warning("No DATABASE_URL: chat works, but without RAG.")
         return
     pool = get_pool()
     await pool.open()
