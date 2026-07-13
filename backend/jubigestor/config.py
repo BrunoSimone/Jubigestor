@@ -35,10 +35,11 @@ class Settings(BaseSettings):
     # to consider them relevant: anything above is dropped and we answer without
     # context (the system prompt then defers to ANSES instead of hallucinating).
     rag_top_k: int = 4
-    # Calibrated 2026-07-01 on the real corpus: genuine questions ~0.22-0.26,
-    # greetings/small-talk ~0.35-0.39, off-topic ~0.45+. 0.32 lets only real
-    # queries through (a greeting brings no citations). Revisit if the corpus grows.
-    rag_max_distance: float = 0.32
+    # Recalibrated 2026-07-06 on the 13-doc / 28-chunk corpus: genuine questions
+    # land at ~0.22-0.31, greetings ~0.37-0.38, off-topic ~0.39-0.43. There is a
+    # clean gap at 0.31-0.37; 0.34 gives valid queries headroom while still keeping
+    # greetings/off-topic out (no spurious citations). Revisit as the corpus grows.
+    rag_max_distance: float = 0.34
 
     # Chat rate limiting: max requests per IP within a time window.
     rate_limit_requests: int = 20
