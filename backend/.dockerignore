@@ -1,0 +1,9 @@
+# Keep the build context lean and secrets out of the image.
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+data/
+scripts/
+poetry.lock

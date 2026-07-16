@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from jubigestor.api.routes import chat, health
+from jubigestor.config import settings
 from jubigestor.db import close_pool, open_pool
 
 
@@ -23,8 +24,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[o.strip() for o in settings.allowed_origins.split(",") if o.strip()],
+    # No cookies/auth are used; False also avoids the wildcard+credentials footgun.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

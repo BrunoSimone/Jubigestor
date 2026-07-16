@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     # Postgres connection. Local (Docker): postgresql://jubigestor:jubigestor@localhost:5432/jubigestor
     database_url: str | None = None
 
+    # CORS: comma-separated list of origins allowed to call the API.
+    # "*" is fine for local dev; set the real frontend domain(s) in production.
+    allowed_origins: str = "*"
+
     # Ingestion pipeline (chunking). Size/overlap measured in characters.
     chunk_size: int = 1200
     chunk_overlap: int = 150
