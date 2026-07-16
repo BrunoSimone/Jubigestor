@@ -32,6 +32,9 @@ def get_pool() -> AsyncConnectionPool:
             settings.database_url,
             open=False,
             configure=_configure,
+            # Validate connections on checkout and replace dead ones transparently.
+            # Needed because Neon suspends on idle and kills open connections.
+            check=AsyncConnectionPool.check_connection,
             min_size=1,
             max_size=5,
         )
